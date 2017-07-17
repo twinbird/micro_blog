@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<title>ユーザ登録</title>
+</head>
+<body>
+	<div class="errors">
+		{{range .Messages}}
+		<ul>
+			{{.}}
+		</ul>
+		{{end}}
+	</div>
+	<fieldset>
+		<legend>ユーザ登録</legend>
+		<form action="/signup" method="POST">
+			<table>
+				<tr>
+					<td>
+						<label for="name">ユーザ名</label>
+					</td>
+					<td>
+						<input type="name" name="name" value="{{.Name}}">
+					</td>
+				</tr>
+				<tr>
+					<td>
+						<label for="email">メールアドレス</label>
+					</td>
+					<td>
+						<input type="email" name="email" value="{{.Email}}">
+					</td>
+				</tr>
+				</tr>
+					<td>
+						<label for="password">パスワード</label>
+					</td>
+					<td>
+						<input type="password" name="password" value="{{.Password}}">
+					</td>
+				</tr>
+				</tr>
+					<td>
+						<label for="confirm_password">パスワード再入力</label>
+					</td>
+					<td>
+						<input type="password" name="confirm_password" value="">
+					</td>
+				</tr>
+			</table>
+			<input type="submit" value="登録">
+		</form>
+	</fieldset>
+</body>
+</html>

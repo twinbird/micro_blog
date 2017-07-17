@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<title>ログイン</title>
+</head>
+<body>
+	<div id="errors">
+		{{range .Messages}}
+		<ul>
+			{{.}}
+		</ul>
+		{{end}}
+	</div>
+	<fieldset>
+		<legend>ログイン</legend>
+		<form action="/login" method="POST">
+			<table>
+				<tr>
+					<td>
+						<label for="email">メールアドレス</label>
+					</td>
+					<td>
+						<input type="email" name="email" value="{{.Email}}">
+					</td>
+				</tr>
+				</tr>
+					<td>
+						<label for="password">パスワード</label>
+					</td>
+					<td>
+						<input type="password" name="password">
+					</td>
+				</tr>
+			</table>
+			<input type="submit" value="ログイン">
+		</form>
+	</fieldset>
+</body>
+</html>
