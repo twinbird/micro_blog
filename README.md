@@ -35,7 +35,7 @@ Posts
 
 | 項目名       | 型              | 内容                 | 属性        |
 |--------------|-----------------|----------------------|-------------|
-| id           | BIGINT UNSIGNED | Post固有のID         | PRIMARY KEY |
+| id           | SERIAL          | Post固有のID         | PRIMARY KEY |
 | post_user_id | BIGINT UNSIGNED | ポストしたユーザのID | -           |
 | messege      | VARCHAR(140)    | メッセージ           | -           |
 | created_at   | DATETIME        | 作成日時             | -           |
