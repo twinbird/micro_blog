@@ -49,6 +49,36 @@ func validateEmailFormat(email string) bool {
 	return re.MatchString(email)
 }
 
+// UserIDが存在する場合はtrue
+func isExistUserID(id int64) (bool, error) {
+	// コネクション取得
+	db, err := DBConnection()
+	if err != nil {
+		return false, err
+	}
+
+	// クエリ発行
+	var dbID int64
+	err = db.QueryRow(`
+	SELECT
+		u.id
+	FROM
+		users u
+	WHERE
+		u.id = ?
+	`, id).Scan(&dbID)
+
+	// 存在判定
+	switch {
+	case err == sql.ErrNoRows:
+		return false, nil
+	case err != nil:
+		return false, err
+	default:
+		return true, nil
+	}
+}
+
 // emailが存在する場合はtrue
 func isExistEmail(email string) (bool, error) {
 	// コネクション取得
@@ -123,7 +153,6 @@ func (u *User) findByEmail(email string) (bool, error) {
 }
 
 // Validate はDB登録前のバリデーションチェック
-// 戻り値の文字列スライスは不正メッセージのスライス
 func (u *User) Validate() error {
 	var messages []string
 

@@ -5,7 +5,7 @@ CREATE TABLE posts (
 	id SERIAL PRIMARY KEY,
 	user_id BIGINT UNSIGNED NOT NULL,
 	message VARCHAR(140) NOT NULL,
-	create_at DATETIME NOT NULL
+	created_at DATETIME NOT NULL
 );
 
 

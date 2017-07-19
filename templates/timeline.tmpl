@@ -9,5 +9,27 @@
 		<input type="submit" value="ログアウト" />
 	</form>
 	<p>ホームだよ</p>
+
+	<div id="messages">
+		<ul>
+			{{range .Messages}}
+			<li>{{.}}</li>
+			{{end}}
+		</ul>
+	</div>
+
+	<form action="/sweets" method="POST">
+		<textarea name="message"></textarea>
+		<input type="submit" value="すいーと">
+	</form>
+
+	<table id="sweets">
+		{{range .Sweets}}
+		<tr>
+			<td>{{.Message}}</td>
+			<td>{{.CreatedAt}}</td>
+		</tr>
+		{{end}}
+	</table>
 </body>
 </html>
