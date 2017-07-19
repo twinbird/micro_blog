@@ -10,6 +10,11 @@
 	</form>
 	<p>ホームだよ</p>
 
+	<form action="/followers" method="GET">
+		<input type="text" name="q">
+		<input type="submit" value="ユーザを検索">
+	</form>
+
 	<div id="messages">
 		<ul>
 			{{range .Messages}}

@@ -259,3 +259,67 @@ func (u *User) Authenticate() (bool, error) {
 	u.Name = findUser.Name
 	return true, nil
 }
+
+// FollowerForTemplate はフォロアー検索画面表示制御用の構造体
+type FollowerForTemplate struct {
+	Followers []Follower
+}
+
+// Follower は画面表示用のフォロアー情報
+type Follower struct {
+	ID        int64
+	Name      string
+	Following bool
+}
+
+// queryに部分一致するユーザ一覧を返す
+func findFollowersByQuery(uid int64, query string, limit int, offset int) ([]Follower, error) {
+	// コネクション取得
+	db, err := DBConnection()
+	if err != nil {
+		return nil, err
+	}
+	// SQL発行
+	rows, err := db.Query(`
+		SELECT
+			u.id,
+			u.name,
+			CASE WHEN f.follower_id IS NULL THEN 'NO_FOLLOWING'
+			ELSE 'FOLLOWING'
+			END AS follow_status
+		FROM
+			users u
+		LEFT JOIN
+			followers f
+		ON
+			f.follower_id = u.id
+		AND
+			f.user_id = ?
+		WHERE
+			u.name LIKE '%' || ? || '%'
+		ORDER BY
+			u.created_at desc
+		LIMIT ?
+		OFFSET ?
+	`, uid, query, limit, offset)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	followers := make([]Follower, 0)
+	for rows.Next() {
+		var f Follower
+		var followStatus string
+		if err := rows.Scan(&f.ID, &f.Name, &followStatus); err != nil {
+			return nil, err
+		}
+		if followStatus == "NO_FOLLOWING" {
+			f.Following = false
+		} else {
+			f.Following = true
+		}
+		followers = append(followers, f)
+	}
+	return followers, nil
+}

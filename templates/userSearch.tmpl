@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<title>ユーザ検索</title>
+</head>
+<body>
+	<table id="users">
+		{{range .Followers}}
+			<tr>
+				<td>{{.Name}}</td>
+				{{if .Following}}
+					<td>Unfollowする</td>
+				{{else}}
+					<td>Followする</td>
+				{{end}}
+			</tr>
+		{{end}}
+	</table>
+</body>
+</html>

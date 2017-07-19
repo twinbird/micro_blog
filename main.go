@@ -19,6 +19,8 @@ const (
 	SessionUserIDKey = "UserID"
 	// TimelinePageLimit は1ページあたりのsweetの表示件数
 	TimelinePageLimit = 50
+	// UserSearchPageLimit は1ページあたりのユーザ表示件数
+	UserSearchPageLimit = 50
 )
 
 // テンプレートファイルを読み込む
@@ -72,6 +74,7 @@ func main() {
 	http.HandleFunc("/signup", unneedLogin(signupHandler))
 	http.HandleFunc("/timeline", needLogin(timelineHandler))
 	http.HandleFunc("/sweets", needLogin(sweetsHandler))
+	http.HandleFunc("/followers", needLogin(followersHandler))
 
 	log.Println("Booting up localhost" + port)
 	err = http.ListenAndServe(port, nil)
@@ -199,7 +202,7 @@ func timelineHandler(w http.ResponseWriter, r *http.Request, s *Session) {
 	}
 	uid, ok := uidv.(int64)
 	if ok == false {
-		log.Println("user_id type assertion fail")
+		log.Println("user_id type assertion fail", uid)
 		http.Error(w, "Sorry.", http.StatusInternalServerError)
 		return
 	}
@@ -207,7 +210,7 @@ func timelineHandler(w http.ResponseWriter, r *http.Request, s *Session) {
 	// sweetsの取得
 	posts, err := Sweets(uid, TimelinePageLimit, 0)
 	if err != nil {
-		log.Println("user_id type assertion fail")
+		log.Println(err)
 		http.Error(w, "Sorry.", http.StatusInternalServerError)
 		return
 	}
@@ -368,5 +371,41 @@ func signupHandler(w http.ResponseWriter, r *http.Request, s *Session) {
 		http.Redirect(w, r, "/timeline", http.StatusFound)
 	default:
 		http.NotFound(w, r)
+	}
+}
+
+// [/followers]のハンドラ
+func followersHandler(w http.ResponseWriter, r *http.Request, s *Session) {
+	// 認証したユーザのIDを取得
+	uidv, err := s.Get(SessionUserIDKey)
+	if err != nil {
+		log.Println(err)
+		http.Error(w, "Sorry.", http.StatusInternalServerError)
+		return
+	}
+	uid, ok := uidv.(int64)
+	if ok == false {
+		log.Println("user_id type assertion fail")
+		http.Error(w, "Sorry.", http.StatusInternalServerError)
+		return
+	}
+	// 検索ワードを取得
+	q := r.FormValue("q")
+
+	// ユーザ一覧を取得
+	followers, err := findFollowersByQuery(uid, q, UserSearchPageLimit, 0)
+	if err != nil {
+		log.Println(err)
+		http.Error(w, "Sorry.", http.StatusInternalServerError)
+		return
+	}
+	fft := &FollowerForTemplate{Followers: followers}
+
+	// ユーザ一覧を表示
+	err = responseTemplate.ExecuteTemplate(w, "userSearch.tmpl", fft)
+	if err != nil {
+		log.Println(err)
+		http.Error(w, "Sorry.", http.StatusInternalServerError)
+		return
 	}
 }
