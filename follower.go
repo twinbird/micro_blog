@@ -42,7 +42,7 @@ func findFollowersByQuery(uid int64, query string, limit int, offset int) ([]Fol
 		AND
 			f.user_id = ?
 		WHERE
-			u.name LIKE '%' || ? || '%'
+			u.name LIKE CONCAT('%', ? ,'%')
 		ORDER BY
 			u.created_at desc
 		LIMIT ?

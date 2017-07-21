@@ -421,7 +421,7 @@ func unfollowHandler(w http.ResponseWriter, r *http.Request, s *Session) {
 	}
 
 	// タイムラインへ回す
-	http.Redirect(w, r, "/timeline", http.StatusFound)
+	http.Redirect(w, r, "/followers", http.StatusFound)
 }
 
 // [/follow]のハンドラ
@@ -479,8 +479,8 @@ func followHandler(w http.ResponseWriter, r *http.Request, s *Session) {
 		http.Error(w, "Sorry.", http.StatusInternalServerError)
 		return
 	}
-	// タイムラインへ回す
-	http.Redirect(w, r, "/timeline", http.StatusFound)
+	// ユーザ検索へ回す
+	http.Redirect(w, r, "/followers", http.StatusFound)
 }
 
 // [/followers]のハンドラ
@@ -504,7 +504,12 @@ func followersHandler(w http.ResponseWriter, r *http.Request, s *Session) {
 		return
 	}
 	// 検索ワードを取得
-	q := r.FormValue("q")
+	if err := r.ParseForm(); err != nil {
+		log.Println(err)
+		http.Error(w, "Sorry.", http.StatusInternalServerError)
+		return
+	}
+	q := r.Form.Get("q")
 
 	// ユーザ一覧を取得
 	followers, err := findFollowersByQuery(uid, q, UserSearchPageLimit, 0)
