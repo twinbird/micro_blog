@@ -10,9 +10,19 @@
 			<tr>
 				<td>{{.Name}}</td>
 				{{if .Following}}
-					<td>Unfollowする</td>
+					<td>
+						<form action="/unfollow" method="POST">
+							<input type="hidden" name="unfollow_user_id" value="{{.FollowerID}}">
+							<input type="submit" value="Unfollowする">
+						</form>
+					</td>
 				{{else}}
-					<td>Followする</td>
+					<td>
+						<form action="/follow" method="POST">
+							<input type="hidden" name="follow_user_id" value="{{.FollowerID}}">
+							<input type="submit" value="Followする">
+						</form>
+					</td>
 				{{end}}
 			</tr>
 		{{end}}

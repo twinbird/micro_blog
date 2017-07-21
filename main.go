@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 	"path/filepath"
+	"strconv"
 )
 
 // 各ページのテンプレート入りテンプレート
@@ -75,6 +76,8 @@ func main() {
 	http.HandleFunc("/timeline", needLogin(timelineHandler))
 	http.HandleFunc("/sweets", needLogin(sweetsHandler))
 	http.HandleFunc("/followers", needLogin(followersHandler))
+	http.HandleFunc("/follow", needLogin(followHandler))
+	http.HandleFunc("/unfollow", needLogin(unfollowHandler))
 
 	log.Println("Booting up localhost" + port)
 	err = http.ListenAndServe(port, nil)
@@ -193,6 +196,11 @@ func sweetsHandler(w http.ResponseWriter, r *http.Request, s *Session) {
 
 // [/timeline]処理用のハンドラ
 func timelineHandler(w http.ResponseWriter, r *http.Request, s *Session) {
+	// GET以外は存在しない
+	if r.Method != "GET" {
+		http.NotFound(w, r)
+		return
+	}
 	// 認証したユーザのIDを取得
 	uidv, err := s.Get(SessionUserIDKey)
 	if err != nil {
@@ -374,8 +382,114 @@ func signupHandler(w http.ResponseWriter, r *http.Request, s *Session) {
 	}
 }
 
+// [/unfollow]のハンドラ
+func unfollowHandler(w http.ResponseWriter, r *http.Request, s *Session) {
+	// POST以外は存在しない
+	if r.Method != "POST" {
+		http.NotFound(w, r)
+		return
+	}
+	// 認証したユーザのIDを取得
+	uidv, err := s.Get(SessionUserIDKey)
+	if err != nil {
+		log.Println(err)
+		http.Error(w, "Sorry.", http.StatusInternalServerError)
+		return
+	}
+	uid, ok := uidv.(int64)
+	if ok == false {
+		log.Println("user_id type assertion fail")
+		http.Error(w, "Sorry.", http.StatusInternalServerError)
+		return
+	}
+
+	// フォロー解除するユーザを取得
+	unfollowUserIDStr := r.FormValue("unfollow_user_id")
+	unfollowUserID, err := strconv.ParseInt(unfollowUserIDStr, 10, 64)
+	if err != nil {
+		log.Println("unfollow_user_id convert error")
+		http.Error(w, "Sorry.", http.StatusInternalServerError)
+		return
+	}
+
+	// フォロー情報を削除
+	f := Follower{UserID: uid, FollowerID: unfollowUserID}
+	if err := f.Remove(); err != nil {
+		log.Println("follower Remove error")
+		http.Error(w, "Sorry.", http.StatusInternalServerError)
+		return
+	}
+
+	// タイムラインへ回す
+	http.Redirect(w, r, "/timeline", http.StatusFound)
+}
+
+// [/follow]のハンドラ
+func followHandler(w http.ResponseWriter, r *http.Request, s *Session) {
+	// POST以外は存在しない
+	if r.Method != "POST" {
+		http.NotFound(w, r)
+		return
+	}
+	// 認証したユーザのIDを取得
+	uidv, err := s.Get(SessionUserIDKey)
+	if err != nil {
+		log.Println(err)
+		http.Error(w, "Sorry.", http.StatusInternalServerError)
+		return
+	}
+	uid, ok := uidv.(int64)
+	if ok == false {
+		log.Println("user_id type assertion fail")
+		http.Error(w, "Sorry.", http.StatusInternalServerError)
+		return
+	}
+
+	// フォローするユーザを取得
+	followUserIDStr := r.FormValue("follow_user_id")
+	followUserID, err := strconv.ParseInt(followUserIDStr, 10, 64)
+	if err != nil {
+		log.Println("follow_user_id convert error")
+		http.Error(w, "Sorry.", http.StatusInternalServerError)
+		return
+	}
+
+	// 登録前チェック
+	f := Follower{UserID: uid, FollowerID: followUserID}
+	if err := f.Validate(); err != nil {
+		log.Println("follower validate error")
+		http.Error(w, "Sorry.", http.StatusInternalServerError)
+		return
+	} else if len(f.Messages) > 0 {
+		// sweetsの取得
+		posts, err := Sweets(uid, TimelinePageLimit, 0)
+		if err != nil {
+			log.Println("user_id type assertion fail")
+			http.Error(w, "Sorry.", http.StatusInternalServerError)
+			return
+		}
+		timeline := &TimelineForTemplate{Sweets: posts, Messages: f.Messages}
+		// 入力エラーがあればtimelineの入力フォームを再表示
+		err = responseTemplate.ExecuteTemplate(w, "timeline.tmpl", timeline)
+	}
+
+	// フォロー情報を登録
+	if err := f.Entry(); err != nil {
+		log.Println("follower Entry error")
+		http.Error(w, "Sorry.", http.StatusInternalServerError)
+		return
+	}
+	// タイムラインへ回す
+	http.Redirect(w, r, "/timeline", http.StatusFound)
+}
+
 // [/followers]のハンドラ
 func followersHandler(w http.ResponseWriter, r *http.Request, s *Session) {
+	// GET以外は存在しない
+	if r.Method != "GET" {
+		http.NotFound(w, r)
+		return
+	}
 	// 認証したユーザのIDを取得
 	uidv, err := s.Get(SessionUserIDKey)
 	if err != nil {
