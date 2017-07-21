@@ -1,0 +1,24 @@
+digraph twitter_like {
+	graph [
+		label="twitter like system page flow";
+		rankdir=LR;
+	];
+	top;
+	signup;
+	login;
+	timeline;
+	userSearch;
+
+	top -> signup[label="link"];
+	top -> login[label="link"];
+	signup -> timeline[label="signup"];
+	timeline -> timeline[label="tweet"];
+	timeline -> userSearch[label="link"];
+	userSearch -> userSearch[label="search"];
+	userSearch -> userSearch[label="follow"];
+	userSearch -> userSearch[label="unfollow"];
+	userSearch -> timeline[label="link"];
+	timeline -> login[label="logout"];
+	login -> timeline[label="login"];
+}
+
