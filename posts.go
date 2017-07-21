@@ -81,7 +81,26 @@ func Sweets(userID int64, limit int, offset int) ([]Post, error) {
 	}
 	// SQL発行
 	rows, err := db.Query(`
-		SELECT
+		(SELECT
+			p.id,
+			p.user_id,
+			u.name,
+			p.message,
+			p.created_at
+		FROM
+			posts p
+		INNER JOIN
+			users u
+		ON
+			p.user_id = u.id
+		INNER JOIN
+			followers f
+		ON
+			u.id = f.follower_id
+		WHERE
+			f.user_id = ?)
+		UNION
+		(SELECT
 			p.id,
 			p.user_id,
 			u.name,
@@ -94,12 +113,12 @@ func Sweets(userID int64, limit int, offset int) ([]Post, error) {
 		ON
 			p.user_id = u.id
 		WHERE
-			p.user_id = ?
+			u.id = ?)
 		ORDER BY
-			p.created_at desc
+			created_at desc
 		LIMIT ?
 		OFFSET ?
-	`, userID, limit, offset)
+	`, userID, userID, limit, offset)
 	if err != nil {
 		return nil, err
 	}
